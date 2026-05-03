@@ -1,0 +1,75 @@
+Commit: cbb0fe27cf9683a12eca0a569121d8033cdc2a4d
+
+# Net — 网络通信模块
+
+## 职责
+
+管理与 MapleStory v83 服务器的 TCP 连接、数据包序列化/反序列化、加密、协议路由。
+
+## 边界与非目标
+
+- **不负责** UI 或业务逻辑；仅负责网络层的发送/接收/路由
+- **不负责** 游戏数据解析的业务含义解释（那是 Handler 调用方的职责）
+
+## 关键抽象
+
+### Session（`Session.h/.cpp`）
+单例，管理 TCP 连接生命周期：`init()` 连接服务器(`ServerIP:ServerPort`)，`write()` 发送，`read()` 接收并处理，`reconnect()` 重连。内部持有 `Cryptography` 和 `PacketSwitch`。通过 `is_connected()` 返回连接状态（`connected` 成员）。
+
+### 传输层适配
+通过编译宏 `USE_ASIO` 选择 `SocketAsio` 或 `SocketWinsock`。默认使用 Winsock（`#define USE_ASIO` 默认注释）。
+
+### PacketSwitch（`PacketSwitch.h`）
+基于 opcode 的处理器注册与分发。`forward()` 按 opcode 将接收到的数据包路由到注册的 `PacketHandler` 子类。最多支持 500 个 opcode。
+
+### PacketHandler（`PacketHandler.h`）
+数据包处理器的抽象基类。`PacketSwitch` 通过 opcode 索引持有 `unique_ptr<PacketHandler>` 数组。
+
+### InPacket / OutPacket（`InPacket.h/.cpp`, `OutPacket.h/.cpp`）
+二进制数据包序列化/反序列化。`InPacket` 支持按类型读取(short/int/string 等)，`OutPacket` 支持按类型写入并带有 opcode。
+
+### Cryptography（`Cryptography.h/.cpp`）
+数据包加密/解密，用于服务器通信。由 `USE_CRYPTO` 宏控制编译。
+
+## 子模块
+
+### Handlers（`Net/Handlers/`）
+按业务域分组的入站数据包处理器：
+- `LoginHandlers` — 登录流程握手
+- `PlayerHandlers` — 玩家状态同步
+- `InventoryHandlers` — 背包变更
+- `MapObjectHandlers` — 地图对象（Mob、NPC、掉落物等）
+- `AttackHandlers` — 攻击与技能
+- `NpcInteractionHandlers` — NPC 对话状态
+- `MessagingHandlers` — 聊天与消息
+- `SetfieldHandlers` — 地图切换
+- `CommonHandlers` — 通用消息
+- `CustomHandlers` — 自定义/扩展协议
+- `TestingHandlers` — 仅开发测试用
+
+`Handlers/Helpers/` 包含子解析器（`LoginParser`, `ItemParser`, `MovementParser`）。
+
+### Packets（`Net/Packets/`）
+与 Handlers 对应的出站数据包构建器，均为头文件。
+
+## 主流程
+
+```
+Session::read()
+  → Socket::receive() 读取原始字节
+  → Cryptography::decrypt() 解密
+  → PacketSwitch::forward() 按 opcode 路由
+  → PacketHandler::handle(InPacket) 解析并分发业务逻辑
+```
+
+## 日志
+
+网络模块使用 `LOG(LOG_NETWORK, ...)` 宏输出调试信息，仅在 Debug 模式下生效。
+
+## 依赖
+
+- `Configuration` — 读取 ServerIP、ServerPort
+- `Error` — 连接失败返回错误码
+- `MapleStory.h` — LOG 宏定义、USE_ASIO 开关
+- `Template/` — Singleton、Optional、EnumMap 等
+- `includes/nlnx/` — 无直接依赖（网络层与游戏数据解耦）
