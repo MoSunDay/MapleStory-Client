@@ -148,7 +148,7 @@ namespace ms
 				Color c;
 			};
 
-			static const std::size_t LENGTH = 4;
+			static const std::size_t LENGTH = 6;
 			Vertex vertices[LENGTH];
 
 			Quad(GLshort l, GLshort r, GLshort t, GLshort b, const Offset& o, const Color& color, GLfloat rot)
@@ -156,7 +156,9 @@ namespace ms
 				vertices[0] = { l, t, o.l, o.t, color };
 				vertices[1] = { l, b, o.l, o.b, color };
 				vertices[2] = { r, b, o.r, o.b, color };
-				vertices[3] = { r, t, o.r, o.t, color };
+				vertices[3] = { r, b, o.r, o.b, color };
+				vertices[4] = { r, t, o.r, o.t, color };
+				vertices[5] = { l, t, o.l, o.t, color };
 
 				if (rot != 0.0f)
 				{
@@ -165,7 +167,7 @@ namespace ms
 					GLshort cx = (l + r) / 2;
 					GLshort cy = (t + b) / 2;
 
-					for (int i = 0; i < 4; i++)
+					for (int i = 0; i < LENGTH; i++)
 					{
 						GLshort vx = vertices[i].x - cx;
 						GLshort vy = vertices[i].y - cy;

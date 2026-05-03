@@ -21,7 +21,7 @@
 
 // #include <windef.h>
 // #include <WinUser.h>
-#include <glfw3.h>
+#include <GLFW/glfw3.h>
 
 namespace ms
 {

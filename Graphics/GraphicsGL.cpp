@@ -762,7 +762,7 @@ namespace ms
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
 		glBufferData(GL_ARRAY_BUFFER, csize, quads.data(), GL_STREAM_DRAW);
 
-		glDrawArrays(GL_QUADS, 0, fsize);
+		glDrawArrays(GL_TRIANGLES, 0, fsize);
 
 		glDisableVertexAttribArray(attribute_coord);
 		glDisableVertexAttribArray(attribute_color);

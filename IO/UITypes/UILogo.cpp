@@ -49,23 +49,18 @@ namespace ms
 	{
 		UIElement::draw(inter);
 
-		if (!user_clicked)
+		GraphicsGL::get().drawrectangle(10, 10, 50, 50, 0.0f, 1.0f, 0.0f, 1.0f);
+
+		if (!nexon_ended)
 		{
-			if (!nexon_ended)
-			{
-				Nexon.draw(position + Point<int16_t>(440, 350), inter);
-			}
-			else
-			{
-				if (!wizet_ended)
-					Wizet.draw(position + Point<int16_t>(263, 185), inter);
-				else
-					WizetEnd.draw(position + Point<int16_t>(263, 185));
-			}
+			Nexon.draw(position + Point<int16_t>(440, 350), inter);
 		}
 		else
 		{
-			WizetEnd.draw(position + Point<int16_t>(263, 185));
+			if (!wizet_ended)
+				Wizet.draw(position + Point<int16_t>(263, 185), inter);
+			else
+				WizetEnd.draw(position + Point<int16_t>(263, 185));
 		}
 	}
 
